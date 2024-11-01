@@ -19,7 +19,7 @@ async function extractInformation(url) {
     const outputDir = path.join(process.cwd(), "output", dirName);
 
     if (fs.existsSync(outputDir)) {
-      fs.rmdirSync(outputDir, { recursive: true });
+      fs.rmSync(outputDir, { recursive: true });
     }
     fs.mkdirSync(outputDir, { recursive: true });
 
