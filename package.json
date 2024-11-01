@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "centris-dl": "index.js"
+  },
   "scripts": {
     "extract": "node index.js"
   },
@@ -11,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "chromedriver": "^130.0.2",
+    "fs-extra": "^11.2.0",
     "selenium-webdriver": "^4.26.0",
     "yargs": "^17.7.2"
   }
