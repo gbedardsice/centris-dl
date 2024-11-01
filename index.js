@@ -13,6 +13,7 @@ async function extractInformation(url) {
     .forBrowser("chrome")
     .setChromeOptions(new chrome.Options())
     .build();
+
   try {
     await driver.get(url);
 
@@ -64,8 +65,6 @@ async function extractInformation(url) {
     const urls = JSON.parse(arrString);
 
     const images = await driver.findElements(By.css(".carousel img"));
-    const numImages = urls.length;
-    const maxIndexLength = String(numImages).length;
 
     const promises = images.map(async (image, i) => {
       const title = await image.getAttribute("title");
@@ -91,8 +90,8 @@ async function extractInformation(url) {
     });
 
     await Promise.all(promises);
-
-    const archive = execSync(`zip -r "${listingName}.zip" "${outputDir}"`);
+    console.log(outputDir);
+    const archive = execSync(`zip -r -j "${listingName}.zip" "${outputDir}"`);
     fs.removeSync(outputDir);
   } finally {
     await driver.quit();
