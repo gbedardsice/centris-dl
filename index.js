@@ -1,11 +1,11 @@
-const { Builder, By, until } = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
-const fs = require("fs");
-const path = require("path");
-const mime = require("mime-types");
-const { URL } = require("url");
+import { Builder, By, until } from "selenium-webdriver";
+import chrome from "selenium-webdriver/chrome.js";
+import * as fs from "fs";
+import * as path from "path";
+import * as mime from "mime-types";
+import { URL } from "url";
 
-async function cli(url) {
+async function extractInformation(url) {
   const driver = await new Builder()
     .forBrowser("chrome")
     .setChromeOptions(new chrome.Options())
@@ -98,4 +98,4 @@ async function cli(url) {
   }
 }
 
-cli(process.argv[2]);
+extractInformation(process.argv[2]);
