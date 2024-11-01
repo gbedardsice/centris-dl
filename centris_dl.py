@@ -7,10 +7,14 @@ import yarl
 import time
 import mimetypes
 import shutil
-import selenium.webdriver
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 import httpx
 import click
+from webdriver_manager.chrome import ChromeDriverManager
 
 def retry(predicate: Callable[[], Any], err_msg: str) -> Any:
     start = time.time()
@@ -36,12 +40,12 @@ def cli(url: str, name: str) -> None:
             return
         shutil.rmtree(output_dir)
     output_dir.mkdir()
-    driver = selenium.webdriver.Chrome()
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
     driver.get(url)
 
-    house_info = driver.find_element_by_class_name("house-info").text
-    features = driver.find_element_by_class_name("description").text
-    description = driver.find_element_by_class_name("property-description").text
+    house_info = driver.find_element(by=By.CSS_SELECTOR, value=".house-info").text
+    features = driver.find_element(by=By.CSS_SELECTOR, value=".description").text
+    description = driver.find_element(by=By.CSS_SELECTOR, value=".property-description").text
     with open(output_dir / "listing.txt", "w") as f:
         f.write(underline("Info"))
         f.write(house_info)
@@ -52,16 +56,24 @@ def cli(url: str, name: str) -> None:
         f.write(underline("Description"))
         f.write(description)
 
-    e_container = driver.find_element_by_class_name("primary-photo-container")
-    a = e_container.find_element_by_tag_name("a")
-    a.click()
+    privacy_notice_agree = driver.find_element(by=By.CSS_SELECTOR, value="#didomi-notice-agree-button")
+    if privacy_notice_agree:
+        privacy_notice_agree.click()
 
-    photo_urls_script = driver.find_element_by_class_name("thumbnail").find_element_by_tag_name("script").get_attribute("innerHTML").strip()
+    WebDriverWait(driver, 10).until_not(lambda d: d.find_element(by=By.CSS_SELECTOR, value="[data-testid=\"notice\"]"))
+
+    e_container = driver.find_element(by=By.CSS_SELECTOR, value=".primary-photo-container a")
+    e_container.click()
+
+    WebDriverWait(driver, 10).until(lambda d: d.find_element(by=By.CSS_SELECTOR, value=".carousel img"))
+
+    photo_urls_script = driver.find_element(by=By.CSS_SELECTOR, value=".thumbnail").find_element(by=By.CSS_SELECTOR, value="script").get_attribute("innerHTML").strip()
     arr_string = photo_urls_script.split("=", 1)[1].rstrip(";")
     urls = json.loads(arr_string)
-    e_carousel = driver.find_element_by_class_name("carousel")
+    e_carousel = driver.find_element(by=By.CSS_SELECTOR, value=".carousel")
+    print(e_carousel.get_attribute("innerHTML"))
     with httpx.Client() as client:
-        e_images = retry(lambda: e_carousel.find_elements_by_tag_name("img"), "Could not get images")
+        e_images = retry(lambda: e_carousel.find_elements(by=By.CSS_SELECTOR, value="img"), "Could not get images")
         num_images = len(urls)
         max_index_length = len(str(num_images))
         ui = -1
