@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import "chromedriver";
 import { Builder, By, until } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome.js";
 import fs from "fs-extra";
@@ -9,10 +10,7 @@ import { URL } from "url";
 import { execSync } from "child_process";
 
 async function extractInformation(url) {
-  const driver = await new Builder()
-    .forBrowser("chrome")
-    .setChromeOptions(new chrome.Options())
-    .build();
+  const driver = await new Builder().forBrowser("chrome").build();
 
   try {
     await driver.get(url);
@@ -36,9 +34,11 @@ async function extractInformation(url) {
       `## Info\n\n${houseInfo}\n\n## Features\n\n${features}\n\n## Description\n\n${description}`
     );
 
-    const privacyNoticeAgree = await driver.findElement(
+    const privacyNoticeAgreeResults = await driver.findElements(
       By.css("#didomi-notice-agree-button")
     );
+
+    const privacyNoticeAgree = privacyNoticeAgreeResults[0];
 
     if (privacyNoticeAgree) {
       await privacyNoticeAgree.click();
