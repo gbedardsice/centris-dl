@@ -9,7 +9,37 @@ import * as mime from "mime-types";
 import { URL } from "url";
 import { execSync } from "child_process";
 
+const fetchListingUrl = async (id) => {
+  try {
+    const data = await fetch("https://www.centris.ca/property/UpdateQuery", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        query: { Filters: [{ MatchType: "Listing", Id: Number(url) }] },
+      }),
+    }).then((res) => res.json());
+
+    if (!data?.d?.Result) {
+      console.error("Couldnt fetch listing, exiting...");
+      return null;
+    }
+
+    url = `https://centris.ca/${data.d.Result}`;
+  } catch (e) {
+    console.error("Couldnt fetch listing, exiting...", e);
+    return null;
+  }
+};
+
 async function extractInformation(url) {
+  if (/^\d+$/.test(url)) {
+    url = await fetchListingUrl(url);
+  }
+
+  if (!url) return;
+
   const driver = await new Builder().forBrowser("chrome").build();
 
   try {
